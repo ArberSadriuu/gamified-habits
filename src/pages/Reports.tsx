@@ -1,6 +1,6 @@
-import React from 'react';
 import { useHabits } from '../contexts/HabitContext';
 import { Line } from 'react-chartjs-2';
+import React from 'react';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -14,8 +14,9 @@ import {
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
-function getDateArray(days: number) {
-  const arr = [];
+// ✅ Funksionet për datat
+function getDateArray(days: number): string[] {
+  const arr: string[] = [];
   for (let i = days - 1; i >= 0; i--) {
     const d = new Date();
     d.setDate(d.getDate() - i);
@@ -23,8 +24,9 @@ function getDateArray(days: number) {
   }
   return arr;
 }
-function getWeekArray(weeks: number) {
-  const arr = [];
+
+function getWeekArray(weeks: number): string[] {
+  const arr: string[] = [];
   const now = new Date();
   for (let i = weeks - 1; i >= 0; i--) {
     const d = new Date(now);
@@ -33,8 +35,9 @@ function getWeekArray(weeks: number) {
   }
   return arr;
 }
-function getMonthArray(months: number) {
-  const arr = [];
+
+function getMonthArray(months: number): string[] {
+  const arr: string[] = [];
   const now = new Date();
   for (let i = months - 1; i >= 0; i--) {
     const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
@@ -43,23 +46,25 @@ function getMonthArray(months: number) {
   return arr;
 }
 
-function aggregateDaily(habits, days = 30) {
+// ✅ Funksionet për agjregim me tipizim të saktë
+function aggregateDaily(habits: any[], days = 30) {
   const dates = getDateArray(days);
   const counts = dates.map(date =>
-    habits.reduce((sum, h) => sum + (h.history?.filter(d => d === date).length || 0), 0)
+    habits.reduce((sum, h: any) => sum + (h.history?.filter((d: string) => d === date).length || 0), 0)
   );
   return { labels: dates, data: counts };
 }
-function aggregateWeekly(habits, weeks = 12) {
+
+function aggregateWeekly(habits: any[], weeks = 12) {
   const weeksArr = getWeekArray(weeks);
   const counts = weeksArr.map(weekStart => {
     const start = new Date(weekStart);
     const end = new Date(start);
     end.setDate(start.getDate() + 6);
     return habits.reduce(
-      (sum, h) =>
+      (sum, h: any) =>
         sum +
-        (h.history?.filter(d => {
+        (h.history?.filter((d: string) => {
           const dt = new Date(d);
           return dt >= start && dt <= end;
         }).length || 0),
@@ -68,19 +73,20 @@ function aggregateWeekly(habits, weeks = 12) {
   });
   return { labels: weeksArr, data: counts };
 }
-function aggregateMonthly(habits, months = 12) {
+
+function aggregateMonthly(habits: any[], months = 12) {
   const monthsArr = getMonthArray(months);
   const counts = monthsArr.map(month => {
     return habits.reduce(
-      (sum, h) =>
-        sum +
-        (h.history?.filter(d => d.startsWith(month)).length || 0),
+      (sum, h: any) =>
+        sum + (h.history?.filter((d: string) => d.startsWith(month)).length || 0),
       0
     );
   });
   return { labels: monthsArr, data: counts };
 }
 
+// ✅ Komponenti kryesor
 const Reports: React.FC = () => {
   const { habits } = useHabits();
   const daily = aggregateDaily(habits);
@@ -98,6 +104,7 @@ const Reports: React.FC = () => {
       y: { ticks: { color: '#334155' }, grid: { color: '#e5e7eb' } },
     },
   };
+
   const darkChartOptions = {
     ...chartOptions,
     scales: {
@@ -105,6 +112,7 @@ const Reports: React.FC = () => {
       y: { ticks: { color: '#e5e7eb' }, grid: { color: '#334155' } },
     },
   };
+
   const isDark = window.document.documentElement.classList.contains('dark');
 
   return (
@@ -112,6 +120,7 @@ const Reports: React.FC = () => {
       <div className="max-w-4xl mx-auto">
         <h1 className="text-4xl font-extrabold text-gray-900 dark:text-gray-100 mb-8 text-center">Reports & Progress</h1>
         <div className="grid gap-10">
+          {/* Daily */}
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow p-6">
             <h2 className="text-xl font-bold mb-2 text-blue-600 dark:text-blue-400">Daily Completions (Last 30 Days)</h2>
             <Line
@@ -130,6 +139,8 @@ const Reports: React.FC = () => {
               options={isDark ? darkChartOptions : chartOptions}
             />
           </div>
+
+          {/* Weekly */}
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow p-6">
             <h2 className="text-xl font-bold mb-2 text-blue-600 dark:text-blue-400">Weekly Completions (Last 12 Weeks)</h2>
             <Line
@@ -148,6 +159,8 @@ const Reports: React.FC = () => {
               options={isDark ? darkChartOptions : chartOptions}
             />
           </div>
+
+          {/* Monthly */}
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow p-6">
             <h2 className="text-xl font-bold mb-2 text-blue-600 dark:text-blue-400">Monthly Completions (Last 12 Months)</h2>
             <Line
@@ -172,4 +185,4 @@ const Reports: React.FC = () => {
   );
 };
 
-export default Reports; 
+export default Reports;
