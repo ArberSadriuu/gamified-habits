@@ -2,15 +2,6 @@ import React, { useState } from 'react';
 import { useHabits } from '../contexts/HabitContext';
 import '../styles/index.css';
 
-const motivationalQuotes = [
-  "Small steps every day lead to big results.",
-  "Consistency is the key to success.",
-  "Your habits define your future.",
-  "Progress, not perfection.",
-  "Stay committed to your goals!"
-];
-const quote = motivationalQuotes[Math.floor(Math.random() * motivationalQuotes.length)];
-
 const HeroSection: React.FC = () => (
   <section className="w-full bg-white border-b border-gray-100 py-16 mb-10">
     <div className="max-w-3xl mx-auto px-4 text-center">
@@ -84,7 +75,7 @@ interface HistoryEntry {
 }
 
 const Home: React.FC = () => {
-  const { habits, addHabit, removeHabit, markComplete, archiveHabit, restoreHabit } = useHabits();
+  const { habits, addHabit, removeHabit, archiveHabit, restoreHabit } = useHabits();
   const [newHabit, setNewHabit] = useState('');
   const [category, setCategory] = useState(categories[0]);
   const [historyLog, setHistoryLog] = useState<HistoryEntry[]>([]);
@@ -129,8 +120,7 @@ const Home: React.FC = () => {
     setHistoryLog(historyLog.filter(e => e.id !== entry.id));
   };
 
-  // Separate regular history from deleted habits
-  const regularHistory = historyLog.filter(entry => !entry.deleted);
+  // Separate deleted habits from history
   const deletedHabits = historyLog.filter(entry => entry.deleted);
 
   // Toggle between showing all history or only deleted items
