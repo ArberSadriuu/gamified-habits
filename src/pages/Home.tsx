@@ -1,8 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useHabits } from '../contexts/HabitContext';
-import HabitCard from '../components/HabitCard';
-import { motion, AnimatePresence } from 'framer-motion';
-import '../styles/index.css'; // Ensure custom CSS is loaded
+import '../styles/index.css';
 
 const motivationalQuotes = [
   "Small steps every day lead to big results.",
@@ -13,48 +11,60 @@ const motivationalQuotes = [
 ];
 const quote = motivationalQuotes[Math.floor(Math.random() * motivationalQuotes.length)];
 
-const getToday = () => new Date().toISOString().split('T')[0];
-
-const DailyMotivationBanner: React.FC<{ quote: string }> = ({ quote }) => {
-  const [visible, setVisible] = useState(false);
-  useEffect(() => {
-    const today = getToday();
-    const dismissed = localStorage.getItem('motivationBannerDismissed');
-    setVisible(dismissed !== today);
-  }, []);
-  const handleClose = () => {
-    localStorage.setItem('motivationBannerDismissed', getToday());
-    setVisible(false);
-  };
-  if (!visible) return null;
-  return (
-    <div className="w-full flex items-center justify-between bg-blue-100 dark:bg-blue-900 text-blue-900 dark:text-blue-100 px-6 py-3 rounded-xl shadow mb-6 animate-fade-in">
-      <span className="font-medium italic">{quote}</span>
-      <button onClick={handleClose} className="ml-4 text-blue-700 dark:text-blue-200 hover:text-blue-900 dark:hover:text-white font-bold text-xl">×</button>
+const HeroSection: React.FC = () => (
+  <section className="w-full bg-white border-b border-gray-100 py-16 mb-10">
+    <div className="max-w-3xl mx-auto px-4 text-center">
+      <h1 className="text-5xl font-extrabold text-gray-900 mb-4 tracking-tight">Your Professional Habit Tracker</h1>
+      <p className="text-xl text-gray-600 mb-8">Organize, track, and archive your habits with a clean, modern interface. Stay motivated and productive every day.</p>
+      <a href="#habits" className="inline-block bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg px-8 py-3 text-lg shadow transition">Get Started Now</a>
     </div>
-  );
-};
-
-const AnimatedHeader: React.FC = () => (
-  <div className="relative w-full flex justify-center items-center h-40 md:h-56 mb-10 overflow-hidden rounded-2xl shadow-xl">
-    <div className="absolute inset-0 animate-gradient bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 dark:from-blue-900 dark:via-indigo-900 dark:to-fuchsia-900 opacity-80 blur-sm" />
-    <div className="relative z-10 flex flex-col items-center justify-center h-full w-full">
-      <h1 className="text-4xl md:text-5xl font-extrabold text-white drop-shadow-lg mb-2 tracking-tight">Welcome to HabitFlow</h1>
-      <p className="text-lg md:text-xl text-white/90 italic drop-shadow">“{quote}”</p>
-    </div>
-  </div>
+  </section>
 );
 
-const Avatar: React.FC<{ level: number; label: string }> = ({ level, label }) => {
-  // Simple evolving avatar: emoji changes with level
-  const avatars = ['😀', '😎', '🦸‍♂️', '🧙‍♂️', '🦄', '🐉'];
-  return (
-    <div className="flex flex-col items-center mb-6">
-      <span className="text-6xl mb-2">{avatars[Math.min(level - 1, avatars.length - 1)]}</span>
-      <span className="text-lg font-semibold">{label} {level}</span>
+const AboutSection: React.FC = () => (
+  <section id="about" className="w-full py-20 bg-gradient-to-br from-gray-50 to-blue-50">
+    <div className="max-w-6xl mx-auto px-4">
+      <div className="text-center mb-16">
+        <h2 className="text-4xl font-bold text-gray-900 mb-4">About HabitFlow</h2>
+        <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+          A modern, professional habit tracking platform designed to help you build lasting positive habits through intuitive design and powerful features.
+        </p>
+      </div>
+      
+      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
+        <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8 hover:shadow-xl transition-shadow">
+          <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mb-6">
+            <span className="text-2xl">📊</span>
+          </div>
+          <h3 className="text-xl font-bold text-gray-900 mb-3">Smart Organization</h3>
+          <p className="text-gray-600 leading-relaxed">
+            Effortlessly categorize and manage your habits with our intuitive category system. Keep your routines organized and easily accessible.
+          </p>
+        </div>
+        
+        <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8 hover:shadow-xl transition-shadow">
+          <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center mb-6">
+            <span className="text-2xl">📈</span>
+          </div>
+          <h3 className="text-xl font-bold text-gray-900 mb-3">Progress Tracking</h3>
+          <p className="text-gray-600 leading-relaxed">
+            Monitor your habit development with detailed history logs. Track your journey from creation to completion with comprehensive analytics.
+          </p>
+        </div>
+        
+        <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8 hover:shadow-xl transition-shadow">
+          <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center mb-6">
+            <span className="text-2xl">🔄</span>
+          </div>
+          <h3 className="text-xl font-bold text-gray-900 mb-3">Flexible Management</h3>
+          <p className="text-gray-600 leading-relaxed">
+            Archive habits for later, restore when needed, or permanently delete. Full control over your habit lifecycle with simple, powerful tools.
+          </p>
+        </div>
+      </div>
     </div>
-  );
-};
+  </section>
+);
 
 const categories = [
   'Health',
@@ -64,102 +74,202 @@ const categories = [
   'Other',
 ];
 
+// HistoryEntry type for the history log
+interface HistoryEntry {
+  id: string;
+  name: string;
+  category: string;
+  date: string;
+  deleted: boolean;
+}
+
 const Home: React.FC = () => {
-  const { habits, addHabit, removeHabit, markComplete, getLevel } = useHabits();
+  const { habits, addHabit, removeHabit, markComplete, archiveHabit, restoreHabit } = useHabits();
   const [newHabit, setNewHabit] = useState('');
   const [category, setCategory] = useState(categories[0]);
-  
-  const maxLevel = habits.reduce((max, h) => Math.max(max, getLevel(h.points)), 1);
-  const bestStreak = habits.reduce((max, h) => Math.max(max, h.streak), 0);
+  const [historyLog, setHistoryLog] = useState<HistoryEntry[]>([]);
+  const [showDeletedOnly, setShowDeletedOnly] = useState(false);
 
+  // Active habits: not archived
+  const activeHabits = habits.filter(h => !h.archived);
+  // Archived habits
+  const archivedHabits = habits.filter(h => h.archived);
+
+  // When a new habit is created, add it to both Active Habits and History
   const handleAddHabit = (e: React.FormEvent) => {
     e.preventDefault();
     if (newHabit.trim()) {
       addHabit(newHabit.trim(), category);
+      setHistoryLog([
+        { id: Date.now().toString(), name: newHabit.trim(), category, date: new Date().toLocaleDateString(), deleted: false },
+        ...historyLog,
+      ]);
       setNewHabit('');
       setCategory(categories[0]);
     }
   };
 
+  // When a habit is deleted from Active, add to history log
+  const handleDeleteHabit = (habit: { id: string; name: string; category: string }) => {
+    setHistoryLog([
+      { id: habit.id, name: habit.name, category: habit.category, date: new Date().toLocaleDateString(), deleted: true },
+      ...historyLog,
+    ]);
+    removeHabit(habit.id);
+  };
+
+  // Remove from history log only (don't affect habits array)
+  const handleClearHistory = (id: string) => {
+    setHistoryLog(historyLog.filter(entry => entry.id !== id));
+  };
+
+  // Restore from history log
+  const handleRestoreHistory = (entry: HistoryEntry) => {
+    addHabit(entry.name, entry.category);
+    setHistoryLog(historyLog.filter(e => e.id !== entry.id));
+  };
+
+  // Separate regular history from deleted habits
+  const regularHistory = historyLog.filter(entry => !entry.deleted);
+  const deletedHabits = historyLog.filter(entry => entry.deleted);
+
+  // Toggle between showing all history or only deleted items
+  const toggleDeletedView = () => {
+    setShowDeletedOnly(!showDeletedOnly);
+  };
+
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col items-center py-8 px-2">
-      <DailyMotivationBanner quote={quote} />
-      <AnimatedHeader />
-      <div className="w-full max-w-4xl flex flex-col md:flex-row gap-8">
-        {/* Sidebar / Dashboard */}
-        <aside className="md:w-1/3 bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 flex flex-col items-center mb-8 md:mb-0">
-          <Avatar level={maxLevel} label="Highest Level:" />
-          <div className="w-full mb-4 text-center">
-            <div className="text-gray-900 dark:text-gray-100 font-medium">Total Habits</div>
-            <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">{habits.length}</div>
-          </div>
-          <div className="w-full mb-4">
-            <div className="mb-2 text-gray-900 dark:text-gray-100 font-medium">Best Streak</div>
-            <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-4 mb-2">
-              <div className="bg-blue-600 dark:bg-blue-400 h-4 rounded-full transition-all" style={{ width: `${Math.min(bestStreak, 30) * 100 / 30}%` }} />
-            </div>
-            <div className="text-right text-xs text-gray-500 dark:text-gray-400">{bestStreak} days</div>
-          </div>
-        </aside>
-        {/* Main Habit Tracker Card */}
-        <main className="flex-1">
-          <form onSubmit={handleAddHabit} className="flex gap-2 mb-8 flex-wrap items-center">
+    <div className="min-h-screen bg-gray-50 flex flex-col items-center">
+      <HeroSection />
+      <main className="w-full max-w-6xl mx-auto px-4 flex flex-col lg:flex-row gap-6">
+        {/* Active Habits Card */}
+        <section id="habits" className="flex-1 bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+          <h2 className="text-2xl font-bold text-blue-600 mb-6">Active Habits</h2>
+          <form onSubmit={handleAddHabit} className="flex gap-2 mb-6 flex-wrap items-center">
             <input
               type="text"
               value={newHabit}
               onChange={e => setNewHabit(e.target.value)}
               placeholder="Add a new habit..."
-              className="flex-1 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-300 dark:focus:ring-blue-500 shadow"
+              className="flex-1 border border-gray-200 bg-white text-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-300 shadow-sm"
             />
             <select
               value={category}
               onChange={e => setCategory(e.target.value)}
-              className="border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-300 dark:focus:ring-blue-500 shadow"
+              className="border border-gray-200 bg-white text-gray-700 rounded-lg px-9 py-2 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-300 shadow-sm"
             >
               {categories.map(cat => (
                 <option key={cat} value={cat}>{cat}</option>
               ))}
             </select>
-            <button type="submit" className="bg-blue-500 hover:bg-blue-400 active:bg-blue-600 text-white rounded-full px-6 py-2 shadow-lg font-semibold transition-all focus:ring-2 focus:ring-blue-300">
-              Add
-            </button>
+            <button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg px-8 py-2 shadow-sm transition">Add</button>
           </form>
-          <div>
-            {habits.length === 0 && <p className="text-center text-gray-400 dark:text-gray-500">No habits yet. Add one above!</p>}
-            <AnimatePresence>
-              {habits.map(habit => (
-                <motion.div
-                  key={habit.id}
-                  layout
-                  initial={{ opacity: 0, y: 50, scale: 0.3 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.5, transition: { duration: 0.2 } }}
-                >
-                  <HabitCard
-                    habit={habit}
-                    onComplete={() => markComplete(habit.id)}
-                    onRemove={() => removeHabit(habit.id)}
-                    getLevel={getLevel}
-                  />
-                </motion.div>
-              ))}
-            </AnimatePresence>
+          {activeHabits.length === 0 && <p className="text-center text-gray-500">No active habits. Add one above!</p>}
+          <div className="space-y-3">
+            {activeHabits.map(habit => (
+              <div key={habit.id} className="bg-gray-50 border border-gray-100 rounded-xl p-4">
+                <div className="flex flex-col">
+                  <div className="mb-3">
+                    <div className="text-lg font-semibold text-gray-700 break-words">{habit.name}</div>
+                    <div className="text-xs text-gray-500 mt-1">{habit.category}</div>
+                  </div>
+                  <div className="flex gap-2">
+                    <button onClick={() => archiveHabit(habit.id)} className="px-4 py-1 rounded border border-blue-200 text-blue-600 font-medium hover:bg-blue-50 transition">Archive</button>
+                    <button onClick={() => handleDeleteHabit(habit)} className="px-4 py-1 rounded border border-red-200 text-red-600 font-medium hover:bg-red-50 transition">Delete</button>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
-        </main>
-      </div>
-      {/* How It Works Section */}
-      <section className="w-full max-w-3xl mt-12 mb-8 mx-auto">
-        <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-xl shadow p-8">
-          <h2 className="text-2xl font-bold mb-4 text-blue-600 dark:text-blue-400 text-center">How It Works</h2>
-          <ol className="list-decimal list-inside text-gray-700 dark:text-gray-300 space-y-2 text-lg">
-            <li><b>Add Habits:</b> Enter the routines you want to build or track.</li>
-            <li><b>Mark as Complete:</b> Each day, check off habits you've accomplished to earn points and build streaks.</li>
-            <li><b>Level Up:</b> Gain points for consistency and watch your avatar evolve as you progress.</li>
-            <li><b>Unlock Achievements:</b> Hit milestones and celebrate your wins with badges and rewards.</li>
-            <li><b>Stay Motivated:</b> Enjoy daily motivational quotes and track your journey in a beautiful, distraction-free interface.</li>
-          </ol>
-        </div>
-      </section>
+        </section>
+
+        {/* History Card */}
+        <section className="flex-1 bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-bold text-gray-700">History</h2>
+            <button 
+              onClick={toggleDeletedView}
+              className={`p-2 rounded-lg transition-colors ${showDeletedOnly ? 'bg-red-100 text-red-600' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}
+              title={showDeletedOnly ? "Show all history" : "Show deleted items only"}
+            >
+              🗑️
+            </button>
+          </div>
+          
+          {showDeletedOnly ? (
+            /* Deleted Items Only View */
+            <div>
+              <h3 className="text-lg font-semibold text-gray-600 mb-3">Deleted Habits</h3>
+              <div className="space-y-3">
+                {deletedHabits.length === 0 && <p className="text-center text-gray-400 text-sm">No deleted habits.</p>}
+                {deletedHabits.map(entry => (
+                  <div key={entry.id} className="bg-red-50 border border-red-100 rounded-xl p-4">
+                    <div className="flex flex-col">
+                      <div className="mb-3">
+                        <div className="text-lg font-semibold text-gray-700 break-words">{entry.name}</div>
+                        <div className="text-xs text-gray-500 mt-1">{entry.category}</div>
+                        <div className="text-xs text-red-500 mt-1">Deleted on: {entry.date}</div>
+                      </div>
+                      <div className="flex gap-2">
+                        <button onClick={() => handleRestoreHistory(entry)} className="px-4 py-1 rounded border border-blue-200 text-blue-600 font-medium hover:bg-blue-50 transition">Restore</button>
+                        <button onClick={() => handleClearHistory(entry.id)} className="px-4 py-1 rounded border border-red-200 text-red-600 font-medium hover:bg-red-50 transition">Clear History</button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            /* Regular History View */
+            <div className="space-y-3">
+              {historyLog.length === 0 && <p className="text-center text-gray-400">No history items yet.</p>}
+              {historyLog.map(entry => (
+                <div key={entry.id} className={`border rounded-xl p-4 ${entry.deleted ? 'bg-red-50 border-red-100' : 'bg-gray-50 border-gray-100'}`}>
+                  <div className="flex flex-col">
+                    <div className="mb-3">
+                      <div className="text-lg font-semibold text-gray-700 break-words">{entry.name}</div>
+                      <div className="text-xs text-gray-500 mt-1">{entry.category}</div>
+                      <div className={`text-xs mt-1 ${entry.deleted ? 'text-red-500' : 'text-gray-400'}`}>
+                        {entry.deleted ? `Deleted on: ${entry.date}` : `Created on: ${entry.date}`}
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      <button onClick={() => handleRestoreHistory(entry)} className="px-4 py-1 rounded border border-blue-200 text-blue-600 font-medium hover:bg-blue-50 transition">Restore</button>
+                      <button onClick={() => handleClearHistory(entry.id)} className="px-4 py-1 rounded border border-red-200 text-red-600 font-medium hover:bg-red-50 transition">
+                        {entry.deleted ? 'Clear History' : 'Clear'}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+
+        {/* Archived Habits Card */}
+        <section className="flex-1 bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+          <h2 className="text-2xl font-bold text-gray-700 mb-6">Archived Habits</h2>
+          {archivedHabits.length === 0 && <p className="text-center text-gray-400">No archived habits.</p>}
+          <div className="space-y-3">
+            {archivedHabits.map(habit => (
+              <div key={habit.id} className="bg-gray-50 border border-gray-100 rounded-xl p-4">
+                <div className="flex flex-col">
+                  <div className="mb-3">
+                    <div className="text-lg font-semibold text-gray-700 break-words">{habit.name}</div>
+                    <div className="text-xs text-gray-500 mt-1">{habit.category}</div>
+                  </div>
+                  <div className="flex gap-2">
+                    <button onClick={() => restoreHabit(habit.id)} className="px-4 py-1 rounded border border-blue-200 text-blue-600 font-medium hover:bg-blue-50 transition">Restore</button>
+                    <button onClick={() => removeHabit(habit.id)} className="px-4 py-1 rounded border border-red-200 text-red-600 font-medium hover:bg-red-50 transition">Delete</button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      </main>
+      <AboutSection />
+      <footer className="w-full text-center text-gray-400 py-8 text-sm border-t border-gray-100 mt-8">&copy; {new Date().getFullYear()} HabitFlow. All rights reserved.</footer>
     </div>
   );
 };

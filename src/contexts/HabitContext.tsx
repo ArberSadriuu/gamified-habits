@@ -1,7 +1,6 @@
-import { createContext, useContext, useEffect } from 'react';
+import { createContext, useContext } from 'react';
 import type { ReactNode } from 'react';
 import { useLocalStorage } from '../hooks/useLocalStorage';
-import { allAchievements, type Achievement } from '../lib/achievements';
 
 export type Habit = {
   id: string;
@@ -11,6 +10,7 @@ export type Habit = {
   points: number;
   lastCompleted: string | null;
   history: string[];
+  archived: boolean;
 };
 
 export type HabitContextType = {
@@ -19,31 +19,14 @@ export type HabitContextType = {
   removeHabit: (id: string) => void;
   markComplete: (id: string) => void;
   getLevel: (points: number) => number;
-  unlockedAchievements: string[];
-  allAchievements: Achievement[];
+  archiveHabit: (id: string) => void;
+  restoreHabit: (id: string) => void;
 };
 
 const HabitContext = createContext<HabitContextType | undefined>(undefined);
 
 export const HabitProvider = ({ children }: { children: ReactNode }) => {
   const [habits, setHabits] = useLocalStorage<Habit[]>('habits', []);
-  const [unlockedAchievements, setUnlockedAchievements] = useLocalStorage<string[]>('unlockedAchievements', []);
-
-  const checkAchievements = (updatedHabits: Habit[]) => {
-    const newUnlocks = allAchievements
-      .filter((ach: Achievement) => !unlockedAchievements.includes(ach.id))
-      .filter((ach: Achievement) => ach.isUnlocked(updatedHabits))
-      .map((ach: Achievement) => ach.id);
-
-    if (newUnlocks.length > 0) {
-      setUnlockedAchievements(prev => [...prev, ...newUnlocks]);
-      // Here you could trigger a notification for new unlocks
-    }
-  };
-
-  useEffect(() => {
-    checkAchievements(habits);
-  }, [habits]);
 
   const addHabit = (name: string, category: string = 'General') => {
     const newHabit = {
@@ -54,6 +37,7 @@ export const HabitProvider = ({ children }: { children: ReactNode }) => {
       points: 0,
       lastCompleted: null,
       history: [],
+      archived: false,
     };
     const updatedHabits = [...habits, newHabit];
     setHabits(updatedHabits);
@@ -70,10 +54,8 @@ export const HabitProvider = ({ children }: { children: ReactNode }) => {
         let newStreak = habit.streak;
         let newHistory = habit.history || [];
         if (habit.lastCompleted !== today) {
-          // If last completed was yesterday, increment streak, else reset
           const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
           newStreak = habit.lastCompleted === yesterday ? habit.streak + 1 : 1;
-          // Add today to history if not already present
           if (!newHistory.includes(today)) {
             newHistory = [...newHistory, today];
           }
@@ -81,7 +63,7 @@ export const HabitProvider = ({ children }: { children: ReactNode }) => {
         return {
           ...habit,
           streak: newStreak,
-          points: habit.points + 10, // 10 points per completion
+          points: habit.points + 10,
           lastCompleted: today,
           history: newHistory,
         };
@@ -90,12 +72,20 @@ export const HabitProvider = ({ children }: { children: ReactNode }) => {
     }));
   };
 
+  const archiveHabit = (id: string) => {
+    setHabits(habits.map(habit => habit.id === id ? { ...habit, archived: true } : habit));
+  };
+
+  const restoreHabit = (id: string) => {
+    setHabits(habits.map(habit => habit.id === id ? { ...habit, archived: false } : habit));
+  };
+
   const getLevel = (points: number) => {
-    return Math.floor(points / 100) + 1; // 100 points per level
+    return Math.floor(points / 100) + 1;
   };
 
   return (
-    <HabitContext.Provider value={{ habits, addHabit, removeHabit, markComplete, getLevel, unlockedAchievements, allAchievements }}>
+    <HabitContext.Provider value={{ habits, addHabit, removeHabit, markComplete, getLevel, archiveHabit, restoreHabit }}>
       {children}
     </HabitContext.Provider>
   );
