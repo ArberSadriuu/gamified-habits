@@ -65,7 +65,6 @@ const categories = [
   'Other',
 ];
 
-// HistoryEntry type for the history log
 interface HistoryEntry {
   id: string;
   name: string;
@@ -81,16 +80,14 @@ const Home: React.FC = () => {
   const [historyLog, setHistoryLog] = useState<HistoryEntry[]>([]);
   const [showDeletedOnly, setShowDeletedOnly] = useState(false);
   
-  // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 5; // Show 5 items per page
+  const [activePage, setActivePage] = useState(1);
+  const [archivedPage, setArchivedPage] = useState(1);
+  const itemsPerPage = 5;
 
-  // Active habits: not archived
   const activeHabits = habits.filter(h => !h.archived);
-  // Archived habits
   const archivedHabits = habits.filter(h => h.archived);
 
-  // When a new habit is created, add it to both Active Habits and History
   const handleAddHabit = (e: React.FormEvent) => {
     e.preventDefault();
     if (newHabit.trim()) {
@@ -101,59 +98,85 @@ const Home: React.FC = () => {
       ]);
       setNewHabit('');
       setCategory(categories[0]);
-      // Reset to first page when adding new habit
       setCurrentPage(1);
     }
   };
 
-  // When a habit is deleted from Active, add to history log
   const handleDeleteHabit = (habit: { id: string; name: string; category: string }) => {
     setHistoryLog([
       { id: habit.id, name: habit.name, category: habit.category, date: new Date().toLocaleDateString(), deleted: true },
       ...historyLog,
     ]);
     removeHabit(habit.id);
-    // Reset to first page when deleting habit
     setCurrentPage(1);
   };
 
-  // Remove from history log only (don't affect habits array)
+  const handleDeleteArchivedHabit = (habit: { id: string; name: string; category: string }) => {
+    setHistoryLog([
+      { id: habit.id, name: habit.name, category: habit.category, date: new Date().toLocaleDateString(), deleted: true },
+      ...historyLog,
+    ]);
+    removeHabit(habit.id);
+    setCurrentPage(1);
+  };
+
   const handleClearHistory = (id: string) => {
     setHistoryLog(historyLog.filter(entry => entry.id !== id));
-    // Reset to first page when clearing history
     setCurrentPage(1);
   };
 
-  // Restore from history log
   const handleRestoreHistory = (entry: HistoryEntry) => {
     addHabit(entry.name, entry.category);
     setHistoryLog(historyLog.filter(e => e.id !== entry.id));
-    // Reset to first page when restoring habit
     setCurrentPage(1);
   };
 
-  // Separate deleted habits from history
-  const deletedHabits = historyLog.filter(entry => entry.deleted);
-
-  // Toggle between showing all history or only deleted items
-  const toggleDeletedView = () => {
-    setShowDeletedOnly(!showDeletedOnly);
-    setCurrentPage(1); // Reset to first page when switching views
+  const handleClearAllDeleted = () => {
+    setHistoryLog(historyLog.filter(entry => !entry.deleted));
+    setCurrentPage(1);
   };
 
-  // Pagination logic
+  const deletedHabits = historyLog.filter(entry => entry.deleted);
+  const createdHabits = historyLog.filter(entry => !entry.deleted);
+
+  const toggleDeletedView = () => {
+    setShowDeletedOnly(!showDeletedOnly);
+    setCurrentPage(1);
+  };
+
   const getCurrentItems = () => {
-    const items = showDeletedOnly ? deletedHabits : historyLog;
+    const items = showDeletedOnly ? deletedHabits : createdHabits;
     const startIndex = (currentPage - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
     return items.slice(startIndex, endIndex);
   };
 
-  const totalPages = Math.ceil((showDeletedOnly ? deletedHabits.length : historyLog.length) / itemsPerPage);
+  const getCurrentActiveItems = () => {
+    const startIndex = (activePage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return activeHabits.slice(startIndex, endIndex);
+  };
 
-  // Navigation functions
+  const getCurrentArchivedItems = () => {
+    const startIndex = (archivedPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return archivedHabits.slice(startIndex, endIndex);
+  };
+
+  const totalPages = Math.ceil((showDeletedOnly ? deletedHabits.length : createdHabits.length) / itemsPerPage);
+  const totalActivePages = Math.ceil(activeHabits.length / itemsPerPage);
+  const totalArchivedPages = Math.ceil(archivedHabits.length / itemsPerPage);
+
   const goToPage = (page: number) => {
     setCurrentPage(page);
+  };
+
+  const goToActivePage = (page: number) => {
+    setActivePage(page);
+  };
+
+  const goToArchivedPage = (page: number) => {
+    setArchivedPage(page);
   };
 
   const goToPreviousPage = () => {
@@ -168,8 +191,37 @@ const Home: React.FC = () => {
     }
   };
 
-  // Pagination component
-  const Pagination = () => {
+  const goToPreviousActivePage = () => {
+    if (activePage > 1) {
+      setActivePage(activePage - 1);
+    }
+  };
+
+  const goToNextActivePage = () => {
+    if (activePage < totalActivePages) {
+      setActivePage(activePage + 1);
+    }
+  };
+
+  const goToPreviousArchivedPage = () => {
+    if (archivedPage > 1) {
+      setArchivedPage(archivedPage - 1);
+    }
+  };
+
+  const goToNextArchivedPage = () => {
+    if (archivedPage < totalArchivedPages) {
+      setArchivedPage(archivedPage + 1);
+    }
+  };
+
+  const Pagination = ({ currentPage, totalPages, onPageChange, onPrevious, onNext }: {
+    currentPage: number;
+    totalPages: number;
+    onPageChange: (page: number) => void;
+    onPrevious: () => void;
+    onNext: () => void;
+  }) => {
     if (totalPages <= 1) return null;
 
     const pageNumbers = [];
@@ -188,7 +240,7 @@ const Home: React.FC = () => {
     return (
       <div className="flex items-center justify-center space-x-2 mt-6">
         <button
-          onClick={goToPreviousPage}
+          onClick={onPrevious}
           disabled={currentPage === 1}
           className={`px-3 py-1 rounded border ${
             currentPage === 1
@@ -202,7 +254,7 @@ const Home: React.FC = () => {
         {startPage > 1 && (
           <>
             <button
-              onClick={() => goToPage(1)}
+              onClick={() => onPageChange(1)}
               className="px-3 py-1 rounded border border-gray-300 text-gray-600 hover:bg-gray-50"
             >
               1
@@ -214,7 +266,7 @@ const Home: React.FC = () => {
         {pageNumbers.map(page => (
           <button
             key={page}
-            onClick={() => goToPage(page)}
+            onClick={() => onPageChange(page)}
             className={`px-3 py-1 rounded border ${
               currentPage === page
                 ? 'border-blue-500 bg-blue-500 text-white'
@@ -229,7 +281,7 @@ const Home: React.FC = () => {
           <>
             {endPage < totalPages - 1 && <span className="text-gray-400">...</span>}
             <button
-              onClick={() => goToPage(totalPages)}
+              onClick={() => onPageChange(totalPages)}
               className="px-3 py-1 rounded border border-gray-300 text-gray-600 hover:bg-gray-50"
             >
               {totalPages}
@@ -238,7 +290,7 @@ const Home: React.FC = () => {
         )}
 
         <button
-          onClick={goToNextPage}
+          onClick={onNext}
           disabled={currentPage === totalPages}
           className={`px-3 py-1 rounded border ${
             currentPage === totalPages
@@ -256,7 +308,6 @@ const Home: React.FC = () => {
     <div className="min-h-screen bg-gray-50 flex flex-col items-center">
       <HeroSection />
       <main className="w-full max-w-6xl mx-auto px-4 flex flex-col lg:flex-row gap-6">
-        {/* Active Habits Card */}
         <section id="habits" className="flex-1 bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
           <h2 className="text-2xl font-bold text-blue-600 mb-6">Active Habits</h2>
           <form onSubmit={handleAddHabit} className="flex gap-2 mb-6 flex-wrap items-center">
@@ -280,7 +331,7 @@ const Home: React.FC = () => {
           </form>
           {activeHabits.length === 0 && <p className="text-center text-gray-500">No active habits. Add one above!</p>}
           <div className="space-y-3">
-            {activeHabits.map(habit => (
+            {getCurrentActiveItems().map(habit => (
               <div key={habit.id} className="bg-gray-50 border border-gray-100 rounded-xl p-4">
                 <div className="flex flex-col">
                   <div className="mb-3">
@@ -295,25 +346,41 @@ const Home: React.FC = () => {
               </div>
             ))}
           </div>
+          <Pagination 
+            currentPage={activePage} 
+            totalPages={totalActivePages} 
+            onPageChange={goToActivePage} 
+            onPrevious={goToPreviousActivePage} 
+            onNext={goToNextActivePage} 
+          />
         </section>
 
-        {/* History Card */}
         <section className="flex-1 bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-2xl font-bold text-gray-700">History</h2>
-            <button 
-              onClick={toggleDeletedView}
-              className={`p-2 rounded-lg transition-colors ${showDeletedOnly ? 'bg-red-100 text-red-600' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}
-              title={showDeletedOnly ? "Show all history" : "Show deleted items only"}
-            >
-              🗑️
-            </button>
+            <div className="flex items-center space-x-2">
+              <button 
+                onClick={toggleDeletedView}
+                className={`p-2 rounded-lg transition-colors ${showDeletedOnly ? 'bg-red-100 text-red-600' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}
+                title={showDeletedOnly ? "Show history" : "Show trash bin"}
+              >
+                🗑️
+              </button>
+              {showDeletedOnly && deletedHabits.length > 0 && (
+                <button 
+                  onClick={handleClearAllDeleted}
+                  className="p-2 rounded-lg transition-colors bg-red-100 text-red-600 hover:bg-red-200"
+                  title="Clear all deleted habits"
+                >
+                  Clear All
+                </button>
+              )}
+            </div>
           </div>
           
           {showDeletedOnly ? (
-            /* Deleted Items Only View */
             <div>
-              <h3 className="text-lg font-semibold text-gray-600 mb-3">Deleted Habits</h3>
+              <h3 className="text-lg font-semibold text-gray-600 mb-3">Trash Bin</h3>
               <div className="space-y-3">
                 {deletedHabits.length === 0 && <p className="text-center text-gray-400 text-sm">No deleted habits.</p>}
                 {getCurrentItems().map(entry => (
@@ -332,44 +399,50 @@ const Home: React.FC = () => {
                   </div>
                 ))}
               </div>
-              <Pagination />
+              <Pagination 
+                currentPage={currentPage} 
+                totalPages={totalPages} 
+                onPageChange={goToPage} 
+                onPrevious={goToPreviousPage} 
+                onNext={goToNextPage} 
+              />
             </div>
           ) : (
-            /* Regular History View */
             <div>
               <div className="space-y-3">
-                {historyLog.length === 0 && <p className="text-center text-gray-400">No history items yet.</p>}
+                {createdHabits.length === 0 && <p className="text-center text-gray-400">No history items yet.</p>}
                 {getCurrentItems().map(entry => (
-                  <div key={entry.id} className={`border rounded-xl p-4 ${entry.deleted ? 'bg-red-50 border-red-100' : 'bg-gray-50 border-gray-100'}`}>
+                  <div key={entry.id} className="bg-gray-50 border border-gray-100 rounded-xl p-4">
                     <div className="flex flex-col">
                       <div className="mb-3">
                         <div className="text-lg font-semibold text-gray-700 break-words">{entry.name}</div>
                         <div className="text-xs text-gray-500 mt-1">{entry.category}</div>
-                        <div className={`text-xs mt-1 ${entry.deleted ? 'text-red-500' : 'text-gray-400'}`}>
-                          {entry.deleted ? `Deleted on: ${entry.date}` : `Created on: ${entry.date}`}
-                        </div>
+                        <div className="text-xs text-gray-400 mt-1">Created on: {entry.date}</div>
                       </div>
                       <div className="flex gap-2">
                         <button onClick={() => handleRestoreHistory(entry)} className="px-4 py-1 rounded border border-blue-200 text-blue-600 font-medium hover:bg-blue-50 transition">Restore</button>
-                        <button onClick={() => handleClearHistory(entry.id)} className="px-4 py-1 rounded border border-red-200 text-red-600 font-medium hover:bg-red-50 transition">
-                          {entry.deleted ? 'Clear History' : 'Clear'}
-                        </button>
+                        <button onClick={() => handleClearHistory(entry.id)} className="px-4 py-1 rounded border border-red-200 text-red-600 font-medium hover:bg-red-50 transition">Clear</button>
                       </div>
                     </div>
                   </div>
                 ))}
               </div>
-              <Pagination />
+              <Pagination 
+                currentPage={currentPage} 
+                totalPages={totalPages} 
+                onPageChange={goToPage} 
+                onPrevious={goToPreviousPage} 
+                onNext={goToNextPage} 
+              />
             </div>
           )}
         </section>
 
-        {/* Archived Habits Card */}
         <section className="flex-1 bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
           <h2 className="text-2xl font-bold text-gray-700 mb-6">Archived Habits</h2>
           {archivedHabits.length === 0 && <p className="text-center text-gray-400">No archived habits.</p>}
           <div className="space-y-3">
-            {archivedHabits.map(habit => (
+            {getCurrentArchivedItems().map(habit => (
               <div key={habit.id} className="bg-gray-50 border border-gray-100 rounded-xl p-4">
                 <div className="flex flex-col">
                   <div className="mb-3">
@@ -378,12 +451,19 @@ const Home: React.FC = () => {
                   </div>
                   <div className="flex gap-2">
                     <button onClick={() => restoreHabit(habit.id)} className="px-4 py-1 rounded border border-blue-200 text-blue-600 font-medium hover:bg-blue-50 transition">Restore</button>
-                    <button onClick={() => removeHabit(habit.id)} className="px-4 py-1 rounded border border-red-200 text-red-600 font-medium hover:bg-red-50 transition">Delete</button>
+                    <button onClick={() => handleDeleteArchivedHabit(habit)} className="px-4 py-1 rounded border border-red-200 text-red-600 font-medium hover:bg-red-50 transition">Delete</button>
                   </div>
                 </div>
               </div>
             ))}
           </div>
+          <Pagination 
+            currentPage={archivedPage} 
+            totalPages={totalArchivedPages} 
+            onPageChange={goToArchivedPage} 
+            onPrevious={goToPreviousArchivedPage} 
+            onNext={goToNextArchivedPage} 
+          />
         </section>
       </main>
       <AboutSection />
